@@ -1,0 +1,17 @@
+{
+  "name": "bev-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "couchdb": "^0.3.8",
+    "express": "^4.13.3",
+    "express-session": "^1.12.1",
+    "socket.io": "^1.3.7"
+  }
+}

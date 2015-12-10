@@ -26,11 +26,6 @@ app.use("/api/cafes", cafeRoutes)
 app.use("/api/bevs", bevRoutes)
 app.use("/api/bites", biteRoutes)
 
-// Frontend routes.
-app.get("*", function(req, res) {
-  res.sendFile(__dirname + "/public/views/index.html")
-})
-
 // To run server.
 var port = process.env.PORT || 3000
 app.listen(port, function() {

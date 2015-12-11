@@ -1,8 +1,30 @@
 var xhr = new XMLHttpRequest()
   , host = "http://127.0.0.1:5984/"
-  , db = "bev-api/"
   , design = "_design/bev-api/"
   , uuidGenerator = require("./uuid.js")
+  
+function getDb(docType) {
+  var db
+  if (docType === "user") {
+    db = "_users/"
+  } else {
+    db = "bev-api/"
+  }
+  return db
+}
+
+function showAllDocsInDb(docType) {
+  var db = getDb(docType)
+  
+  xhr.open("GET", host + db + "_all_docs")
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      var docs = JSON.parse(xhr.responseText)
+      return docs
+    }
+  }
+  xhr.send()
+}
   
 function showAllDocsOfType(type) {
   var view = "by_type"
@@ -18,8 +40,15 @@ function showAllDocsOfType(type) {
   xhr.send(JSON.stringify({key: type}))
 }
 
-function showDocByName(collection, docName) {
-  var view = collection + "_by_name"
+function showDocByName(docType, docName) {
+  var db = getDb(docType)
+    , view
+  
+  if (docType === "user") {
+    view = "by_name"
+  } else {
+    view = docType + "s" + "_by_name"
+  }
   
   xhr.open("POST", host + db + design + "_view/" + view)
   xhr.setRequestHeader("Content-Type", "application/json")
@@ -32,7 +61,9 @@ function showDocByName(collection, docName) {
   xhr.send(JSON.stringify({key: docName}))
 }
 
-function showDoc(id) {
+function showDoc(docType, id) {
+  var db = getDb(docType)
+  
   xhr.open("GET", host + db + id)
   xhr.onload = function() {
     if (xhr.status === 200) {
@@ -44,7 +75,14 @@ function showDoc(id) {
 }
 
 function addDoc(newDoc) {
-  var id = uuidGenerator.generateUuid()
+  var id
+    , db = getDb(newDoc.type)
+    
+  if (newDoc.type === "user") {
+    id = "org.couchdb.user:" + newDoc.name
+  } else {
+    id = uuidGenerator.generateUuid()
+  }
   
   xhr.open("PUT", host + db + id)
   xhr.setRequestHeader("Content-Type", "application/json")
@@ -56,11 +94,29 @@ function addDoc(newDoc) {
   }
   xhr.send(JSON.stringify(doc))
 }
+
+function editDoc(id, updatedDoc) {
+  
+}
+
+function deleteAllDocsOfType(type) {
+  
+}
+
+function deleteDoc(id) {
+  
+}
   
 module.exports = {
   xhr: xhr,
   host: host,
   db: db,
+  showAllDocsInDb: showAllDocsInDb,
   showAllDocsOfType: showAllDocsOfType,
-  addDoc: addDoc
+  showDocByName: showDocByName,
+  showDoc: showDoc,
+  addDoc: addDoc,
+  editDoc: editDoc,
+  deleteAllDocsOfType: deleteAllDocsOfType,
+  deleteDoc: deleteDoc
 }

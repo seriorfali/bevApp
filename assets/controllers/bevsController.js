@@ -10,24 +10,34 @@ function showAllBevs(req, res) {
 }
 
 function showBev(req, res) {
-  var bev = dbQuerier.showDoc(req.params.id)
+  var bev = dbQuerier.showDoc("bev", req.params.id)
   res.json(bev)
 }
 
 function addBev(req, res) {
-  var bev = dbQuerier.showDocByName("bevs", req.body.name)
-  if (!bev) {
-    var name = req.body.name
+  var name = req.body.name
       , ingredients = req.body.ingredients
       , type = req.body.type
-      , newBev = new Bev(name, ingredients, type)
+      
+  var bev = dbQuerier.showDocByName(type, name)
+  if (!bev) {
+    var newBev = new Bev(name, ingredients, type)
       
     dbQuerier.addDoc(newBev)
   }
 }
 
 function editBev(req, res) {
-  
+  var bev = dbQuerier.showDoc("bev", req.params.id)
+    , updatedBev = {
+      _rev: bev._rev
+      name: req.body.name || bev.name,
+      ingredients: req.body.ingredients || bev.ingredients,
+      type: "bev",
+      bevType: req.body.bevType || bev.bevType
+    }
+   
+  dbQuerier.editDoc(req.params.id, updatedBev)
 }
 
 function deleteAllBevs(req, res) {

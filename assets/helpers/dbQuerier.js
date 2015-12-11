@@ -96,7 +96,17 @@ function addDoc(newDoc) {
 }
 
 function editDoc(id, updatedDoc) {
-  
+  var db = getDb(updatedDoc.type)
+    
+  xhr.open("PUT", host + db + id)
+  xhr.setRequestHeader("Content-Type", "application/json")
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      var editedDoc = JSON.parse(xhr.responseText)
+      return editedDoc
+    }
+  }
+  xhr.send(JSON.stringify(updatedDoc))
 }
 
 function deleteAllDocsOfType(type) {

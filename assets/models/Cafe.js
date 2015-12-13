@@ -1,0 +1,1 @@
+var uuidGenerator = require("../helpers/uuid.js")

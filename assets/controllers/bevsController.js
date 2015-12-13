@@ -74,7 +74,7 @@ function editBev(req, res) {
       ingredients: req.body.ingredients || bev.ingredients,
       prices: req.body.prices || bev.prices,
       type: "bev",
-      bevType: req.body.bevType || bev.bevType
+      bev_type: req.body.bevType || bev.bev_type
     }
       , dbEditBev = new Promise(function(resolve, reject) {
         dbQuerier.editDoc(req.params.id, updatedBev, resolve, reject)

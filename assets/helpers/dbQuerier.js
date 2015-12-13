@@ -2,7 +2,6 @@ var http = require("http")
   , url = require("url")
   , host = "http://127.0.0.1:5984/"
   , design = "_design/bev-api/"
-  , uuidGenerator = require("./uuid.js")
   
 function getDb(docType) {
   var db
@@ -125,21 +124,14 @@ function showDoc(docType, id, resolve, reject) {
 }
 
 function addDoc(newDoc, resolve, reject) {
-  var id
-    , db = getDb(newDoc.type)
-    
-  if (newDoc.type === "user") {
-    id = "org.couchdb.user:" + newDoc.name
-  } else {
-    id = uuidGenerator.generateUuid()
-  }
+  var db = getDb(newDoc.type)
   
-  var address = url.parse(host + db + id)
+  var address = url.parse(host + db)
     , options = {
     hostname: address.hostname,
     path: address.path,
     port: address.port,
-    method: "PUT",
+    method: "POST",
     headers: {
       "Content-Type": "application/json"
     }
@@ -153,7 +145,7 @@ function addDoc(newDoc, resolve, reject) {
     })
     res.on("end", function() {
       var getAddedDoc = new Promise(function(resolveGet, rejectGet) {
-        showDoc(newDoc.type, id, resolveGet, rejectGet)
+        showDoc(newDoc.type, newDoc._id, resolveGet, rejectGet)
       })
       
       getAddedDoc.then(function(addedDoc) {
@@ -172,6 +164,10 @@ function addDoc(newDoc, resolve, reject) {
   req.write(JSON.stringify(newDoc))
   
   req.end()
+}
+
+function addDocs(newDocs, docType, resolve, reject) {
+  
 }
 
 function editDoc(id, updatedDoc, resolve, reject) {

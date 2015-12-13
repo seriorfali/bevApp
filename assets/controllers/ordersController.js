@@ -16,11 +16,22 @@ function showOrder(req, res) {
   })
   
   dbGetOrder.then(function(order) {
-    res.json(bev)
+    var dbGetOrderItems = new Promise(function(resolve, reject) {
+      dbQuerier.showDocsOfTypeByField("order_item", "order_id", order._id, resolve, reject)
+    })
+    
+    dbGetOrderItems.then(function(orderItems) {
+      order.items = orderItems
+      res.json(order)
+    })
+    .catch(function(err) {
+      console.log(err.message)
+      res.json({message: "Failed to retrieve order items."})
+    })
   })
   .catch(function(err) {
     console.log(err.message)
-    res.json({message: "Failed to retrieve bev."})
+    res.json({message: "Failed to retrieve order."})
   })
 }
 

@@ -13,10 +13,11 @@ function getDb(docType) {
   return db
 }
   
-function showAllDocsOfType(type, resolve, reject) {
-  var db = getDb(type)
-    , view = "by_type"
+function showDocsByField(docType, field, fieldValueOrValues, resolve, reject) {
+  var db = getDb(docType)
+    , view = "by_" + field
     , address = url.parse(host + db + design + "_view/" + view)
+    , valueOrValues
   
   var options = {
     hostname: address.hostname,
@@ -38,10 +39,14 @@ function showAllDocsOfType(type, resolve, reject) {
         , rows = parsedBody.rows
         , docs = []
         
-      rows.forEach(function(row) {
-        docs.push(row.value)
-      })
-        
+      if (rows.length) {
+        rows.forEach(function(row) {
+          docs.push(row.value)
+        })
+      } else {
+        docs = null
+      }
+         
       resolve(docs)
     })
   })
@@ -50,20 +55,21 @@ function showAllDocsOfType(type, resolve, reject) {
     reject(err)
   })
   
-  req.write(JSON.stringify({keys: [type]}))
+  if (Array.isArray(fieldValueOrValues)) {
+    valueOrValues = fieldValueOrValues
+  } else {
+    valueOrValues = [fieldValueOrValues]
+  }
+  
+  req.write(JSON.stringify({keys: valueOrValues}))
   
   req.end()
 }
 
-function showDocByName(docType, docName, resolve, reject) {
+function showDocsOfTypeByField(docType, field, fieldValueOrValues, resolve, reject) {
   var db = getDb(docType)
-    , view
-  
-  if (docType === "user") {
-    view = "by_name"
-  } else {
-    view = docType + "s" + "_by_title"
-  }
+    , view = docType + "s_by_" + field
+    , valueOrValues
   
   var address = url.parse(host + db + design + "_view/" + view)
     , options = {
@@ -84,15 +90,17 @@ function showDocByName(docType, docName, resolve, reject) {
     res.on("end", function() {
       var parsedBody = JSON.parse(body)
         , rows = parsedBody.rows
-        , doc
+        , docs = []
       
       if (rows.length) {
-        doc = rows[0].value
+        rows.forEach(function(row) {
+          docs.push(row.value)
+        })
       } else {
-        doc = null
+        docs = null
       }
         
-      resolve(doc)
+      resolve(docs)
     })
   })
   
@@ -100,7 +108,13 @@ function showDocByName(docType, docName, resolve, reject) {
     reject(err)
   })
   
-  req.write(JSON.stringify({keys: [docName]}))
+  if (Array.isArray(fieldValueOrValues)) {
+    valueOrValues = fieldValueOrValues
+  } else {
+    valueOrValues = [fieldValueOrValues]
+  }
+  
+  req.write(JSON.stringify({keys: valueOrValues}))
   
   req.end()
 }
@@ -152,6 +166,7 @@ function showDocs(docType, ids, resolve, reject) {
       if (rows.length) {
         rows.forEach(function(row) {
           docs.push(row.doc)
+        })
       } else {
         docs = null
       }
@@ -305,7 +320,7 @@ function editDoc(id, updatedDoc, resolve, reject) {
   req.end()
 }
 
-function deleteAllDocsOfType(type) {
+function deleteAllDocsByField(type) {
   
 }
 
@@ -352,13 +367,13 @@ function deleteDoc(docType, id, resolve, reject) {
 }
   
 module.exports = {
-  showAllDocsOfType: showAllDocsOfType,
-  showDocByName: showDocByName,
+  showDocsByField: showDocsByField,
+  showDocsOfTypeByField: showDocsOfTypeByField,
   showDoc: showDoc,
   showDocs: showDocs,
   addDoc: addDoc,
   addDocs: addDocs,
   editDoc: editDoc,
-  deleteAllDocsOfType: deleteAllDocsOfType,
+  deleteAllDocsByField: deleteAllDocsByField,
   deleteDoc: deleteDoc
 }

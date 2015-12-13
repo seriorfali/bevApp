@@ -3,7 +3,7 @@ var Bev = require("../models/Bev.js")
   
 function showAllBevs(req, res) {
   var dbGetAllBevs = new Promise(function(resolve, reject) {
-    dbQuerier.showAllDocsOfType("bev", resolve, reject)
+    dbQuerier.showDocsByField("bev", "type", "bev", resolve, reject)
   })
   
   dbGetAllBevs.then(function(allBevs) {
@@ -35,10 +35,11 @@ function addBev(req, res) {
     , prices = req.body.prices
     , bevType = req.body.bevType
     , dbGetBev = new Promise(function(resolve, reject) {
-    dbQuerier.showDocByName("bev", title, resolve, reject)
+    dbQuerier.showDocsOfTypeByField("bev", "title", title, resolve, reject)
   })
   
   dbGetBev.then(function(bev) {
+    console.log("First step complete.")
     if (!bev) {
       var newBev = new Bev(title, ingredients, prices, bevType)
         , dbAddBev = new Promise(function(resolve, reject) {

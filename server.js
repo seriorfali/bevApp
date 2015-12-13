@@ -19,6 +19,7 @@ var userRoutes = require("./routes/userRoutes.js")
   , cafeRoutes = require("./routes/cafeRoutes.js")
   , bevRoutes = require("./routes/bevRoutes.js")
   , biteRoutes = require("./routes/biteRoutes.js")
+  , orderRoutes = require("./routes/orderRoutes.js")
   
 // app.use("/api/v1/users", userRoutes)
 // app.use("/api/v1/cafes", cafeRoutes)

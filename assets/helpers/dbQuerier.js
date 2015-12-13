@@ -123,6 +123,52 @@ function showDoc(docType, id, resolve, reject) {
   })
 }
 
+function showDocs(docType, ids, resolve, reject) {
+  var db = getDb(docType)
+    , view = "_all_docs"
+    , viewOptions = "?include_docs=true"
+  
+  var address = url.parse(host + db + view + viewOptions)
+    , options = {
+    hostname: address.hostname,
+    path: address.path,
+    port: address.port,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }
+  
+  var req = http.request(options, function(res) {
+    var body = ""
+    res.on("data", function(data) {
+      body += data
+    })
+    res.on("end", function() {
+      var parsedBody = JSON.parse(body)
+        , rows = parsedBody.rows
+        , docs = []
+      
+      if (rows.length) {
+        rows.forEach(function(row) {
+          docs.push(row.doc)
+      } else {
+        docs = null
+      }
+        
+      resolve(docs)
+    })
+  })
+  
+  req.on("error", function(err) {
+    reject(err)
+  })
+  
+  req.write(JSON.stringify({keys: ids}))
+  
+  req.end()
+}
+
 function addDoc(newDoc, resolve, reject) {
   var db = getDb(newDoc.type)
   
@@ -167,7 +213,52 @@ function addDoc(newDoc, resolve, reject) {
 }
 
 function addDocs(newDocs, docType, resolve, reject) {
+  var db = getDb(docType)
   
+  var address = url.parse(host + db)
+    , options = {
+    hostname: address.hostname,
+    path: address.path,
+    port: address.port,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }
+  
+  var req = http.request(options, function(res) {
+    var body = ""
+    
+    res.on("data", function(data) {
+      body += data
+    })
+    res.on("end", function() {
+      var ids = []
+      
+      newDocs.forEach(function(newDoc) {
+        ids.push(newDoc._id)
+      })
+      
+      var getAddedDocs = new Promise(function(resolveGet, rejectGet) {
+        showDocs(docType, ids, resolveGet, rejectGet)
+      })
+      
+      getAddedDocs.then(function(addedDocs) {
+        resolve(addedDocs)
+      })
+      .catch(function(err) {
+        reject(err)
+      })
+    })
+  })
+  
+  req.on("error", function(err) {
+    reject(err)
+  })
+  
+  req.write(JSON.stringify({docs: newDocs}))
+  
+  req.end()
 }
 
 function editDoc(id, updatedDoc, resolve, reject) {

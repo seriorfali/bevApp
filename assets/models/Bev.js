@@ -4,7 +4,7 @@ var Bev = function(title, ingredients, prices, bevType) {
 		ingredients: ingredients,
 		prices: prices,
 		type: "bev",
-		bevType: bevType
+		bev_type: bevType
 	}
 }
 

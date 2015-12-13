@@ -1,2 +1,1 @@
-var request = XMLHttpRequest()
-  , Bev = require("../models/Cafe.js")
+var Cafe = require("../models/Cafe.js")

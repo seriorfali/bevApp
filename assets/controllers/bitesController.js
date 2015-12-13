@@ -1,2 +1,1 @@
-var request = XMLHttpRequest()
-  , Bev = require("../models/Bite.js")
+var Bite = require("../models/Bite.js")

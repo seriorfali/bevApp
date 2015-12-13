@@ -1,5 +1,5 @@
 var bevRouter = require("express").Router()
-  , bevsController = require("./assets/controllers/bevsController.js")
+  , bevsController = require("../assets/controllers/bevsController.js")
 
 bevRouter.route("/")
 	.get(bevsController.showAllBevs)

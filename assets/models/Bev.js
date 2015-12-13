@@ -1,8 +1,11 @@
-var Bev = function(name, ingredients, bevType) return {
-	name: name,
-	ingredients: ingredients,
-	type: "bev",
-	bevType: bevType
+var Bev = function(title, ingredients, prices, bevType) {
+	return {
+		title: title,
+		ingredients: ingredients,
+		prices: prices,
+		type: "bev",
+		bevType: bevType
+	}
 }
 
 module.exports = Bev

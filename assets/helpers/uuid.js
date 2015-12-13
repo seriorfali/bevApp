@@ -19,5 +19,5 @@ function generateUuid() {
 }
 
 module.exports = {
-	generateUuid: generateId
+	generateUuid: generateUuid
 }

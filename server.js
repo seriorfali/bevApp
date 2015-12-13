@@ -1,9 +1,8 @@
 // Package inclusions.
-var app = require("express")
-  , session = require("express-session")
+var express = require("express")
+  , app = express()
   , bodyParser = require("body-parser")
   , logger = require("morgan")
-  , couchdb = require("couchdb")
   , path = require("path")
   
 // Middleware implementations.
@@ -21,10 +20,10 @@ var userRoutes = require("./routes/userRoutes.js")
   , bevRoutes = require("./routes/bevRoutes.js")
   , biteRoutes = require("./routes/biteRoutes.js")
   
-app.use("/api/users", userRoutes)
-app.use("/api/cafes", cafeRoutes)
+// app.use("/api/users", userRoutes)
+// app.use("/api/cafes", cafeRoutes)
 app.use("/api/bevs", bevRoutes)
-app.use("/api/bites", biteRoutes)
+// app.use("/api/bites", biteRoutes)
 
 // To run server.
 var port = process.env.PORT || 3000

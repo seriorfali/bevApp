@@ -1,4 +1,5 @@
-var xhr = new XMLHttpRequest()
+var http = require("http")
+  , url = require("url")
   , host = "http://127.0.0.1:5984/"
   , design = "_design/bev-api/"
   , uuidGenerator = require("./uuid.js")
@@ -12,69 +13,118 @@ function getDb(docType) {
   }
   return db
 }
-
-function showAllDocsInDb(docType) {
-  var db = getDb(docType)
   
-  xhr.open("GET", host + db + "_all_docs")
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      var docs = JSON.parse(xhr.responseText)
-      return docs
+function showAllDocsOfType(type, resolve, reject) {
+  var db = getDb(type)
+    , view = "by_type"
+    , address = url.parse(host + db + design + "_view/" + view)
+  
+  var options = {
+    hostname: address.hostname,
+    path: address.path,
+    port: address.port,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
     }
   }
-  xhr.send()
-}
   
-function showAllDocsOfType(type) {
-  var view = "by_type"
+  var req = http.request(options, function(res) {
+    var body = ""
+    res.on("data", function(data) {
+      body += data
+    })
+    res.on("end", function() {
+      var parsedBody = JSON.parse(body)
+        , rows = parsedBody.rows
+        , docs = []
+        
+      rows.forEach(function(row) {
+        docs.push(row.value)
+      })
+        
+      resolve(docs)
+    })
+  })
   
-  xhr.open("POST", host + db + design + "_view/" + view)
-  xhr.setRequestHeader("Content-Type", "application/json")
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      var docs = JSON.parse(xhr.responseText)
-      return docs
-    }
-  }
-  xhr.send(JSON.stringify({key: type}))
+  req.on("error", function(err) {
+    reject(err)
+  })
+  
+  req.write(JSON.stringify({keys: [type]}))
+  
+  req.end()
 }
 
-function showDocByName(docType, docName) {
+function showDocByName(docType, docName, resolve, reject) {
   var db = getDb(docType)
     , view
   
   if (docType === "user") {
     view = "by_name"
   } else {
-    view = docType + "s" + "_by_name"
+    view = docType + "s" + "_by_title"
   }
   
-  xhr.open("POST", host + db + design + "_view/" + view)
-  xhr.setRequestHeader("Content-Type", "application/json")
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      var doc = JSON.parse(xhr.responseText)
-      return doc
+  var address = url.parse(host + db + design + "_view/" + view)
+    , options = {
+    hostname: address.hostname,
+    path: address.path,
+    port: address.port,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
     }
   }
-  xhr.send(JSON.stringify({key: docName}))
+  
+  var req = http.request(options, function(res) {
+    var body = ""
+    res.on("data", function(data) {
+      body += data
+    })
+    res.on("end", function() {
+      var parsedBody = JSON.parse(body)
+        , rows = parsedBody.rows
+        , doc
+      
+      if (rows.length) {
+        doc = rows[0].value
+      } else {
+        doc = null
+      }
+        
+      resolve(doc)
+    })
+  })
+  
+  req.on("error", function(err) {
+    reject(err)
+  })
+  
+  req.write(JSON.stringify({keys: [docName]}))
+  
+  req.end()
 }
 
-function showDoc(docType, id) {
+function showDoc(docType, id, resolve, reject) {
   var db = getDb(docType)
-  
-  xhr.open("GET", host + db + id)
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      var doc = JSON.parse(xhr.responseText)
-      return doc
-    }
-  }
-  xhr.send()
+
+  http.get(host + db + id, function(res) {
+    var body = ""
+    
+    res.on("data", function(data) {
+      body += data
+    })
+    res.on("end", function() {
+      var doc = JSON.parse(body)
+      resolve(doc)
+    })
+  }).on("error", function(err) {
+    reject(err)
+  })
 }
 
-function addDoc(newDoc) {
+function addDoc(newDoc, resolve, reject) {
   var id
     , db = getDb(newDoc.type)
     
@@ -84,44 +134,137 @@ function addDoc(newDoc) {
     id = uuidGenerator.generateUuid()
   }
   
-  xhr.open("PUT", host + db + id)
-  xhr.setRequestHeader("Content-Type", "application/json")
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      var addedDoc = JSON.parse(xhr.responseText)
-      return addedDoc
+  var address = url.parse(host + db + id)
+    , options = {
+    hostname: address.hostname,
+    path: address.path,
+    port: address.port,
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
     }
   }
-  xhr.send(JSON.stringify(doc))
+  
+  var req = http.request(options, function(res) {
+    var body = ""
+    
+    res.on("data", function(data) {
+      body += data
+    })
+    res.on("end", function() {
+      var getAddedDoc = new Promise(function(resolveGet, rejectGet) {
+        showDoc(newDoc.type, id, resolveGet, rejectGet)
+      })
+      
+      getAddedDoc.then(function(addedDoc) {
+        resolve(addedDoc)
+      })
+      .catch(function(err) {
+        reject(err)
+      })
+    })
+  })
+  
+  req.on("error", function(err) {
+    reject(err)
+  })
+  
+  req.write(JSON.stringify(newDoc))
+  
+  req.end()
 }
 
-function editDoc(id, updatedDoc) {
+function editDoc(id, updatedDoc, resolve, reject) {
   var db = getDb(updatedDoc.type)
-    
-  xhr.open("PUT", host + db + id)
-  xhr.setRequestHeader("Content-Type", "application/json")
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      var editedDoc = JSON.parse(xhr.responseText)
-      return editedDoc
+    , address = url.parse(host + db + id)
+  
+  var options = {
+    hostname: address.hostname,
+    path: address.path,
+    port: address.port,
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
     }
   }
-  xhr.send(JSON.stringify(updatedDoc))
+  
+  var req = http.request(options, function(res) {
+    var body = ""
+    
+    res.on("data", function(data) {
+      body += data
+    })
+    
+    res.on("end", function() {
+      var getEditedDoc = new Promise(function(resolveGet, rejectGet) {
+        showDoc(updatedDoc.type, id, resolveGet, rejectGet)
+      })
+      
+      getEditedDoc.then(function(editedDoc) {
+        resolve(editedDoc)
+      })
+      .catch(function(err) {
+        reject(err)
+      })
+    })
+  })
+  
+  req.on("error", function(err) {
+    reject(err)
+  })
+  
+  req.write(JSON.stringify(updatedDoc))
+  
+  req.end()
 }
 
 function deleteAllDocsOfType(type) {
   
 }
 
-function deleteDoc(id) {
+function deleteDoc(docType, id, resolve, reject) {
+  var getDoc = new Promise(function(resolveGet, rejectGet) {
+    showDoc(docType, id, resolveGet, rejectGet)
+  })
   
+  getDoc.then(function(doc) {
+    var rev = doc._rev
+      , db = getDb(docType)
+      , address = url.parse(host + db + id)
+      , options = {
+      hostname: address.hostname,
+      path: address.path,
+      port: address.port,
+      method: "DELETE",
+      headers: {
+        "If-Match": rev
+      }
+    }
+    
+    var req = http.request(options, function(res) {
+      var body = ""
+      
+      res.on("data", function(data) {
+        body += data
+      })
+      
+      res.on("end", function() {
+        resolve("Successfully deleted bev.")
+      })
+    })
+    
+    req.on("error", function(err) {
+      reject(err)
+    })
+    
+    req.end()
+  })
+  .catch(function(err) {
+    reject(err)
+  })
 }
   
 module.exports = {
-  xhr: xhr,
-  host: host,
-  db: db,
-  showAllDocsInDb: showAllDocsInDb,
   showAllDocsOfType: showAllDocsOfType,
   showDocByName: showDocByName,
   showDoc: showDoc,

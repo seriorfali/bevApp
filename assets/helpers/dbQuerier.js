@@ -355,7 +355,9 @@ module.exports = {
   showAllDocsOfType: showAllDocsOfType,
   showDocByName: showDocByName,
   showDoc: showDoc,
+  showDocs: showDocs,
   addDoc: addDoc,
+  addDocs: addDocs,
   editDoc: editDoc,
   deleteAllDocsOfType: deleteAllDocsOfType,
   deleteDoc: deleteDoc

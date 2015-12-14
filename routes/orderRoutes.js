@@ -2,10 +2,10 @@ var orderRouter = require("express").Router()
   , ordersController = require("../assets/controllers/ordersController.js")
 
 orderRouter.route("/users/:user_id/orders")
-	.get(ordersController.showAllUserOrders)
+	.get(ordersController.showUserOrders)
 
 orderRouter.route("/cafes/:cafe_id/orders")
-	.get(ordersController.showAllCafeOrders)
+	.get(ordersController.showCafeOrders)
 	
 orderRouter.route("/orders/")
 	.post(ordersController.addOrder)

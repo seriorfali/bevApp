@@ -4,7 +4,6 @@ var bevRouter = require("express").Router()
 bevRouter.route("/")
 	.get(bevsController.showAllBevs)
 	.post(bevsController.addBev)
-	.delete(bevsController.deleteAllBevs)
 	
 bevRouter.route("/:id")
 	.get(bevsController.showBev)

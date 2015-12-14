@@ -413,5 +413,6 @@ module.exports = {
   addDocs: addDocs,
   editDoc: editDoc,
   deleteAllDocsByField: deleteAllDocsByField,
-  deleteDoc: deleteDoc
+  deleteDoc: deleteDoc,
+  deleteDocs: deleteDocs
 }

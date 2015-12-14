@@ -103,26 +103,6 @@ function addOrderItems(orderId, orderItems, resolve, reject) {
   })
 }
 
-function deleteOrderItems(orderItems, resolve, reject) {
-  var orderItemsToDelete = []
-  
-  orderItems.forEach(function(orderItem) {
-    orderItem._deleted = true
-    orderItemsToDelete.push(orderItem)
-  })
-  
-  var dbDeleteOrderItems = new Promise(function(resolveDelete, rejectDelete) {
-    dbQuerier.deleteDocs(orderItemsToDelete, "order_item", resolveDelete, rejectDelete)
-  })
-    
-  dbDeleteOrderItems.then(function(message) {
-    resolve(message)
-  })
-  .catch(function(err) {
-    reject(err)
-  })
-}
-
 function addOrder(req, res) {
   var userId = req.body.userId
     , cafeId = req.body.cafeId
@@ -172,7 +152,7 @@ function editOrder(req, res) {
     , newOrderItems = req.body.items.new
   
   var dbDeleteOrderItems = new Promise(function(resolve, reject) {
-    deleteOrderItems(orderItemsToDelete, resolve, reject)
+    dbQuerier.deleteDocs(orderItemsToDelete, "order_item", resolve, reject)
   })
   
   dbDeleteOrderItems.then(function() {
@@ -239,11 +219,44 @@ function editOrder(req, res) {
 }
 
 function deleteOrder(req, res) {
-	
+	var orderId = req.params.id
+  
+  var dbGetOrderItems = new Promise(function(resolve, reject) {
+    dbQuerier.showDocsOfTypeByField("order_item", "order_id", orderId, resolve, reject)
+  })
+  
+  dbGetOrderItems.then(function(orderItems) {
+    var dbGetOrder = new Promise(function(resolve, reject) {
+      dbQuerier.showDoc("order", orderId, resolve, reject)
+    })
+    
+    dbGetOrder.then(function(order) {
+      var orderAndItems = orderItems.push(order)
+      
+      var dbDeleteOrderAndItems = new Promise(function(resolve, reject) {
+        dbQuerier.deleteDocs(orderAndItems, "order_id", orderId, resolve, reject)
+      })
+      
+      dbDeleteOrderAndItems.then(function() {
+        res.json({message: "Successfully deleted order."})
+      })
+      .catch(function(err) {
+        console.log(err.message)
+        res.json({message: "Failed to delete order."})
+      })
+    })
+    .catch(function(err) {
+      console.log(err.message)
+      res.json({message: "Failed to access order."})
+    })
+  })
+  .catch(function(err) {
+    console.log(err.message)
+    res.json({message: "Failed to access order items."})
+  })
 }
 
 module.exports = {
-  showOrdersByParent: showOrdersByParent,
   showCafeOrders: showCafeOrders,
   showUserOrders: showUserOrders,
   showOrder: showOrder,

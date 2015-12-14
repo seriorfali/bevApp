@@ -369,6 +369,10 @@ function deleteDoc(docType, id, resolve, reject) {
 function deleteDocs(docsToDelete, docType, resolve, reject) {
   var db = getDb(docType)
   
+  docsToDelete.forEach(function(docToDelete) {
+    docToDelete._deleted = true
+  })
+  
   var address = url.parse(host + db + "_bulk_docs")
     , options = {
     hostname: address.hostname,
@@ -395,7 +399,7 @@ function deleteDocs(docsToDelete, docType, resolve, reject) {
     reject(err)
   })
   
-  req.write(JSON.stringify({docs: newDocs}))
+  req.write(JSON.stringify({docs: docsToDelete}))
   
   req.end()
 }

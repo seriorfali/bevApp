@@ -7,6 +7,9 @@ orderRouter.route("/users/:user_id/orders")
 orderRouter.route("/cafes/:cafe_id/orders")
 	.get(ordersController.showAllCafeOrders)
 	
+orderRouter.route("/orders/")
+	.post(ordersController.addOrder)
+	
 orderRouter.route("/orders/:id")
 	.get(ordersController.showOrder)
 	.put(ordersController.editOrder)

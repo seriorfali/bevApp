@@ -230,7 +230,7 @@ function addDoc(newDoc, resolve, reject) {
 function addDocs(newDocs, docType, resolve, reject) {
   var db = getDb(docType)
   
-  var address = url.parse(host + db)
+  var address = url.parse(host + db + "_bulk_docs")
     , options = {
     hostname: address.hostname,
     path: address.path,
@@ -351,7 +351,7 @@ function deleteDoc(docType, id, resolve, reject) {
       })
       
       res.on("end", function() {
-        resolve("Successfully deleted bev.")
+        resolve("success")
       })
     })
     
@@ -364,6 +364,40 @@ function deleteDoc(docType, id, resolve, reject) {
   .catch(function(err) {
     reject(err)
   })
+}
+
+function deleteDocs(docsToDelete, docType, resolve, reject) {
+  var db = getDb(docType)
+  
+  var address = url.parse(host + db + "_bulk_docs")
+    , options = {
+    hostname: address.hostname,
+    path: address.path,
+    port: address.port,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  }
+  
+  var req = http.request(options, function(res) {
+    var body = ""
+    
+    res.on("data", function(data) {
+      body += data
+    })
+    res.on("end", function() {
+      resolve("success")
+    })
+  })
+  
+  req.on("error", function(err) {
+    reject(err)
+  })
+  
+  req.write(JSON.stringify({docs: newDocs}))
+  
+  req.end()
 }
   
 module.exports = {

@@ -39,7 +39,6 @@ function addBev(req, res) {
   })
   
   dbGetBev.then(function(bev) {
-    console.log("First step complete.")
     if (!bev) {
       var newBev = new Bev(title, ingredients, prices, bevType)
         , dbAddBev = new Promise(function(resolve, reject) {
@@ -64,8 +63,9 @@ function addBev(req, res) {
 }
 
 function editBev(req, res) {
+  var bevId = req.params.id
   var dbGetBev = new Promise(function(resolve, reject) {
-    dbQuerier.showDoc("bev", req.params.id, resolve, reject)
+    dbQuerier.showDoc("bev", bevId, resolve, reject)
   })
   
   dbGetBev.then(function(bev) {
@@ -78,7 +78,7 @@ function editBev(req, res) {
       bev_type: req.body.bevType || bev.bev_type
     }
       , dbEditBev = new Promise(function(resolve, reject) {
-        dbQuerier.editDoc(req.params.id, updatedBev, resolve, reject)
+        dbQuerier.editDoc(bevId, updatedBev, resolve, reject)
     })
       
     dbEditBev.then(function(editedBev) {

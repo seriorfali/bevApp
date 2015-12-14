@@ -84,8 +84,115 @@ function showOrder(req, res) {
   })
 }
 
-function editOrder(req, res) {
+function addOrderItems(orderId, orderItems, resolve, reject) {
+  var newOrderItems = []
+  orderItems.forEach(function(orderItem) {
+    var newOrderItem = new OrderItem(orderId, orderItem.menuItemId, orderItem.size, orderItem.price)
+    newOrderItems.push(newOrderItem)
+  })
+  
+  var dbAddOrderItems = new Promise(function(resolveAdd, rejectAdd) {
+    dbQuerier.addDocs(newOrderItems, "order_item", resolveAdd, rejectAdd)
+  })
+    
+  dbAddOrderItems.then(function(addedOrderItems) {
+    resolve(addedOrderItems)
+  })
+  .catch(function(err) {
+    reject(err)
+  })
+}
 
+function deleteOrderItems(orderItems, resolve, reject) {
+  var orderItemsToDelete = []
+  
+  orderItems.forEach(function(orderItem) {
+    orderItem._deleted = true
+    orderItemsToDelete.push(orderItem)
+  })
+  
+  var dbDeleteOrderItems = new Promise(function(resolveDelete, rejectDelete) {
+    dbQuerier.deleteDocs(orderItemsToDelete, "order_item", resolveDelete, rejectDelete)
+  })
+    
+  dbDeleteOrderItems.then(function(message) {
+    resolve(message)
+  })
+  .catch(function(err) {
+    reject(err)
+  })
+}
+
+function editOrder(req, res) {
+  var orderId = req.params.id
+    , orderItemsToDelete = req.body.items.deleted
+    , newOrderItems = req.body.items.new
+  
+  var dbDeleteOrderItems = new Promise(function(resolve, reject) {
+    deleteOrderItems(orderItemsToDelete, resolve, reject)
+  })
+  
+  dbDeleteOrderItems.then(function() {
+    var getOldOrderItems = new Promise(function(resolveGet, rejectGet) {
+      dbQuerier.showDocsOfTypeByField("order_item", "order_id", orderId, resolveGet, rejectGet)
+    })
+    
+    getOldOrderItems.then(function(oldOrderItems) {
+      var dbAddOrderItems = new Promise(function(resolve, reject) {
+        addOrderItems(orderId, newOrderItems, resolve, reject)
+      })
+    
+      dbAddOrderItems.then(function(addedOrderItems) {
+        var orderItems = oldOrderItems.concat(addedOrderItems)
+        return orderItems
+      })
+      .then(function(orderItems) {
+        var dbGetOrder = new Promise(function(resolve, reject) {
+          dbQuerier.showDoc("order", orderId, resolve, reject)
+        })
+    
+        dbGetOrder.then(function(order) {
+          var updatedOrder = {
+            _rev: order._rev,
+            user_id: order.user_id,
+            cafe_id: req.body.cafe_id || order.cafe_id,
+            placed_at: order.placed_at,
+            last_updated_at: new Date(),
+            cost: req.body.cost,
+            type: "order"
+          }
+            , dbEditOrder = new Promise(function(resolve, reject) {
+              dbQuerier.editDoc(orderId, updatedOrder, resolve, reject)
+          })
+            
+          dbEditOrder.then(function(editedOrder) {
+            editedOrder.items = orderItems
+            res.json(editedOrder)
+          })
+          .catch(function(err) {
+            console.log(err.message)
+            res.json({message: "Failed to edit order."})
+          })
+        })
+        .catch(function(err) {
+          console.log(err.message)
+          res.json({message: "Failed to access order."})
+        })
+      })
+      .catch(function(err) {
+        console.log(err.message)
+        res.json({message: "Failed to add new order items."})
+      })
+    })
+    .catch(function(err) {
+      console.log(err.message)
+      res.json({message: "Failed to retrieve previously added order items."})
+    })
+  })
+  .catch(function(err) {
+    console.log(err.message)
+    res.json({message: "Failed to delete order items."})
+  })
 }
 
 function deleteOrder(req, res) {
@@ -97,6 +204,7 @@ module.exports = {
   showCafeOrders: showCafeOrders,
   showUserOrders: showUserOrders,
   showOrder: showOrder,
+  addOrder: addOrder,
   editOrder: editOrder,
   deleteOrder: deleteOrder
 }

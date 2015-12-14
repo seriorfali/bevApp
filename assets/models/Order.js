@@ -5,7 +5,7 @@ var Order = function(userId, cafeId, cost) {
 		_id: uuidGenerator.generateUuid(),
 		user_id: userId,
 		cafe_id: cafeId,
-		date_time: new Date(),
+		placed_at: new Date(),
 		cost: cost,
 		type: "order"
 	}

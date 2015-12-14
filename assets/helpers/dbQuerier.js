@@ -1,6 +1,9 @@
 var http = require("http")
   , url = require("url")
-  , host = "http://127.0.0.1:5984/"
+  , dbConfig = require("../../config/dbConfig.js")
+  , protocol = "http://"
+  , auth = dbConfig.username + ":" + dbConfig.password
+  , host = "@127.0.0.1:5984/"
   , design = "_design/bev-api/"
   
 function getDb(docType) {
@@ -16,13 +19,14 @@ function getDb(docType) {
 function showDocsByField(docType, field, fieldValueOrValues, resolve, reject) {
   var db = getDb(docType)
     , view = "by_" + field
-    , address = url.parse(host + db + design + "_view/" + view)
+    , address = url.parse(protocol + auth + host + db + design + "_view/" + view)
     , valueOrValues
   
   var options = {
     hostname: address.hostname,
     path: address.path,
     port: address.port,
+    auth: address.auth,
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -71,11 +75,12 @@ function showDocsOfTypeByField(docType, field, fieldValueOrValues, resolve, reje
     , view = docType + "s_by_" + field
     , valueOrValues
   
-  var address = url.parse(host + db + design + "_view/" + view)
+  var address = url.parse(protocol + auth + host + db + design + "_view/" + view)
     , options = {
     hostname: address.hostname,
     path: address.path,
     port: address.port,
+    auth: address.auth,
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -122,7 +127,7 @@ function showDocsOfTypeByField(docType, field, fieldValueOrValues, resolve, reje
 function showDoc(docType, id, resolve, reject) {
   var db = getDb(docType)
 
-  http.get(host + db + id, function(res) {
+  http.get(protocol + auth + host + db + id, function(res) {
     var body = ""
     
     res.on("data", function(data) {
@@ -142,11 +147,12 @@ function showDocs(docType, ids, resolve, reject) {
     , view = "_all_docs"
     , viewOptions = "?include_docs=true"
   
-  var address = url.parse(host + db + view + viewOptions)
+  var address = url.parse(protocol + auth + host + db + view + viewOptions)
     , options = {
     hostname: address.hostname,
     path: address.path,
     port: address.port,
+    auth: address.auth,
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -187,11 +193,12 @@ function showDocs(docType, ids, resolve, reject) {
 function addDoc(newDoc, resolve, reject) {
   var db = getDb(newDoc.type)
   
-  var address = url.parse(host + db)
+  var address = url.parse(protocol + auth + host + db)
     , options = {
     hostname: address.hostname,
     path: address.path,
     port: address.port,
+    auth: address.auth,
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -230,11 +237,12 @@ function addDoc(newDoc, resolve, reject) {
 function addDocs(newDocs, docType, resolve, reject) {
   var db = getDb(docType)
   
-  var address = url.parse(host + db + "_bulk_docs")
+  var address = url.parse(protocol + auth + host + db + "_bulk_docs")
     , options = {
     hostname: address.hostname,
     path: address.path,
     port: address.port,
+    auth: address.auth,
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -278,12 +286,13 @@ function addDocs(newDocs, docType, resolve, reject) {
 
 function editDoc(id, updatedDoc, resolve, reject) {
   var db = getDb(updatedDoc.type)
-    , address = url.parse(host + db + id)
+    , address = url.parse(protocol + auth + host + db + id)
   
   var options = {
     hostname: address.hostname,
     path: address.path,
     port: address.port,
+    auth: address.auth,
     method: "PUT",
     headers: {
       "Content-Type": "application/json"
@@ -332,11 +341,12 @@ function deleteDoc(docType, id, resolve, reject) {
   getDoc.then(function(doc) {
     var rev = doc._rev
       , db = getDb(docType)
-      , address = url.parse(host + db + id)
+      , address = url.parse(protocol + auth + host + db + id)
       , options = {
       hostname: address.hostname,
       path: address.path,
       port: address.port,
+      auth: address.auth,
       method: "DELETE",
       headers: {
         "If-Match": rev
@@ -373,11 +383,12 @@ function deleteDocs(docsToDelete, docType, resolve, reject) {
     docToDelete._deleted = true
   })
   
-  var address = url.parse(host + db + "_bulk_docs")
+  var address = url.parse(protocol + auth + host + db + "_bulk_docs")
     , options = {
     hostname: address.hostname,
     path: address.path,
     port: address.port,
+    auth: address.auth,
     method: "POST",
     headers: {
       "Content-Type": "application/json"

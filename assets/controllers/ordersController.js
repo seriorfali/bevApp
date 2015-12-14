@@ -123,6 +123,49 @@ function deleteOrderItems(orderItems, resolve, reject) {
   })
 }
 
+function addOrder(req, res) {
+  var userId = req.body.userId
+    , cafeId = req.body.cafeId
+    , cost = req.body.cost
+    , orderItems = req.body.items
+    , newOrder = new Order(userId, cafeId, cost)
+    , orderId = newOrder._id
+    , newOrderAndItems = [newOrder]
+    
+  orderItems.forEach(function(orderItem) {
+    var menuItemId = orderItem.menuItemId
+      , size = orderItem.size
+      , price = orderItem.price
+      , newOrderItem = new OrderItem(orderId, menuItemId, size, price)
+    
+    newOrderAndItems.push(newOrderItem)
+  })
+
+  var dbAddOrderAndItems = new Promise(function(resolve, reject) {
+    dbQuerier.addDocs(newOrderAndItems, resolve, reject)
+  })
+  
+  dbAddOrderAndItems.then(function(addedOrderAndItems) {
+    var addedOrder
+      , addedItems = []
+      
+    addedOrderAndItems.forEach(function(addedOrderOrItem) {
+      if (addedOrderOrItem._id === orderId) {
+        addedOrder = addedOrderOrItem
+      } else {
+        addedItems.push(addedOrderOrItem)
+      }
+    })
+    
+    addedOrder.items = addedItems
+    res.json(addedOrder)
+  })
+  .catch(function(err) {
+    console.log(err.message)
+    res.json({message: "Failed to add order."})
+  })
+}
+
 function editOrder(req, res) {
   var orderId = req.params.id
     , orderItemsToDelete = req.body.items.deleted

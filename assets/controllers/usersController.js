@@ -39,6 +39,33 @@ function showUser(req, res) {
   })
 }
 
+function validateEmail(req, res) {
+  var email = req.body.email
+  
+  // Retrieve any user document with specified title in database.
+  var dbGetUser = new Promise(function(resolve, reject) {
+    dbQuerier.showDocsOfTypeByField("user", "name", email, resolve, reject)
+  })
+  
+  // If response received, check if user was found.
+  dbGetUser.then(function(user) {
+    // If no user found, generate new user document and add it to database.
+    if (!user) {
+      res.json("Email not found.")
+    } else {
+      res.json("Email found.")
+    }
+  })
+  .catch(function(err) {
+    console.log(err.message)
+    res.json("Failed to validate email.")
+  })
+}
+
+function login(req, res) {
+
+}
+
 // To add user document to database.
 function addUser(req, res) {
   var email = req.body.email
@@ -149,8 +176,9 @@ function deleteUser(req, res) {
 module.exports = {
   showAllUsers: showAllUsers,
   showUser: showUser,
+  validateEmail: validateEmail,
+  login: login,
   addUser: addUser,
-  // login: login,
   editUser: editUser,
   deleteUser: deleteUser
 }

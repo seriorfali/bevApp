@@ -63,7 +63,24 @@ function validateEmail(req, res) {
 }
 
 function login(req, res) {
-
+  var email = req.body.email
+    , password = req.body.password
+    
+  var getToken = new Promise(function(resolve, reject) {
+    dbQuerier.startSession(email, password, resolve, reject)
+  })
+  
+  getToken.then(function(response) {
+    if (response === "unauthorized") {
+      res.json("Incorrect password.")
+    } else {
+      res.json(response)
+    }
+  })
+  .catch(function(err) {
+    console.log(err.message)
+    res.json("Failed to authenticate user.")
+  })
 }
 
 // To add user document to database.

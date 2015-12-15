@@ -129,7 +129,7 @@ function showDoc(docType, id, resolve, reject) {
 
   http.get(protocol + auth + host + db + id, function(res) {
     var body = ""
-    
+ 
     res.on("data", function(data) {
       body += data
     })
@@ -415,6 +415,56 @@ function deleteDocs(docsToDelete, docType, resolve, reject) {
   
   req.end()
 }
+
+function startSession(username, password, resolve, reject) {
+  var userInfo = {
+        name: username,
+        password: password
+      }
+    , address = url.parse(protocol + host + "_session")
+    , options = {
+        hostname: address.hostname,
+        path: address.path,
+        port: address.port,
+        auth: address.auth,
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        }
+      }
+  
+  var req = http.request(options, function(res) {
+    var body = ""
+    
+    res.on("data", function(data) {
+      body += data
+    })
+    res.on("end", function() {
+      var headers = res.headers
+        , setCookie = headers["set-cookie"][0]
+        , cookie = setCookie.slice(0, setCookie.indexOf(";"))
+        , parsedBody = JSON.parse(body)
+        , response
+
+      if (parsedBody.error) {
+        response = parsedBody.error
+      } else {
+        response = cookie
+      }
+        
+      resolve(response)
+    })
+  })
+  
+  req.on("error", function(err) {
+    reject(err)
+  })
+  
+  req.write(JSON.stringify(userInfo))
+  
+  req.end()
+}
   
 module.exports = {
   showDocsByField: showDocsByField,
@@ -426,5 +476,6 @@ module.exports = {
   editDoc: editDoc,
   deleteAllDocsByField: deleteAllDocsByField,
   deleteDoc: deleteDoc,
-  deleteDocs: deleteDocs
+  deleteDocs: deleteDocs,
+  startSession: startSession
 }

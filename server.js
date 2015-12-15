@@ -21,10 +21,10 @@ var userRoutes = require("./routes/userRoutes.js")
   , biteRoutes = require("./routes/biteRoutes.js")
   , orderRoutes = require("./routes/orderRoutes.js")
   
-// app.use("/api/v1/users", userRoutes)
+app.use("/api/v1/users", userRoutes)
 // app.use("/api/v1/cafes", cafeRoutes)
 app.use("/api/v1/bevs", bevRoutes)
-// app.use("/api/v1/bites", biteRoutes)
+app.use("/api/v1/bites", biteRoutes)
 app.use("/api/v1/", orderRoutes)
 
 // To run server.

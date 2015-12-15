@@ -212,6 +212,7 @@ function addDoc(newDoc, resolve, reject) {
       body += data
     })
     res.on("end", function() {
+      console.log(newDoc)
       var getAddedDoc = new Promise(function(resolveGet, rejectGet) {
         showDoc(newDoc.type, newDoc._id, resolveGet, rejectGet)
       })
@@ -343,14 +344,14 @@ function deleteDoc(docType, id, resolve, reject) {
       , db = getDb(docType)
       , address = url.parse(protocol + auth + host + db + id)
       , options = {
-      hostname: address.hostname,
-      path: address.path,
-      port: address.port,
-      auth: address.auth,
-      method: "DELETE",
-      headers: {
-        "If-Match": rev
-      }
+        hostname: address.hostname,
+        path: address.path,
+        port: address.port,
+        auth: address.auth,
+        method: "DELETE",
+        headers: {
+          "If-Match": rev
+        }
     }
     
     var req = http.request(options, function(res) {

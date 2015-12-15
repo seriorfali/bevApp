@@ -41,24 +41,27 @@ function showUser(req, res) {
 
 // To add user document to database.
 function addUser(req, res) {
-  var title = req.body.title
-    , ingredients = req.body.ingredients
-    , prices = req.body.prices
+  var email = req.body.email
+    , password = req.body.password
+    , firstName = req.body.firstName
+    , lastName = req.body.lastName
+    , phone = req.body.phone
     // Retrieve any user document with specified title in database.
     , dbGetUser = new Promise(function(resolve, reject) {
-        dbQuerier.showDocsOfTypeByField("user", "title", title, resolve, reject)
+        dbQuerier.showDocsOfTypeByField("user", "name", email, resolve, reject)
       })
   
   // If response received, check if user was found.
   dbGetUser.then(function(user) {
     // If no user found, generate new user document and add it to database.
     if (!user) {
-      var newUser = new User(email, firstName, lastName, phone)
+      var newUser = new User(email, password, firstName, lastName, phone)
         , dbAddUser = new Promise(function(resolve, reject) {
           dbQuerier.addDoc(newUser, resolve, reject)
         })
         
       dbAddUser.then(function(addedUser) {
+        console.log(addedUser)
         res.json(addedUser)
       })
       // If document not added, send error message.
@@ -68,7 +71,7 @@ function addUser(req, res) {
       })
     // If user found, send message to indicate.
     } else {
-      res.json({message: "User with that name already in database!"})
+      res.json({message: "Email is already associated with an account!"})
     }
   })
   // If response not received, send error message.
@@ -90,13 +93,22 @@ function editUser(req, res) {
   dbGetUser.then(function(user) {
     var updatedUser = {
           _rev: user._rev,
-          title: req.body.title || user.title,
-          ingredients: req.body.ingredients || user.ingredients,
-          prices: req.body.prices || user.prices,
+          name: user.name,
+          first_name: req.body.firstName || user.first_name,
+		      last_name: req.body.lastName || user.last_name,
+          phone: req.body.phone || user.phone,
+          joined_at: user.joined_at,
           type: "user",
+          api: "bev",
+          roles: user.roles
         }
-      , dbEditUser = new Promise(function(resolve, reject) {
-            dbQuerier.editDoc(userId, updatedUser, resolve, reject)
+        
+    if (req.body.password) {
+      updatedUser.password = req.body.password
+    }
+    
+    var dbEditUser = new Promise(function(resolve, reject) {
+          dbQuerier.editDoc(userId, updatedUser, resolve, reject)
         })
     
     // If document edited, send edited document.
@@ -138,7 +150,7 @@ module.exports = {
   showAllUsers: showAllUsers,
   showUser: showUser,
   addUser: addUser,
-  login: login,
+  // login: login,
   editUser: editUser,
   deleteUser: deleteUser
 }
